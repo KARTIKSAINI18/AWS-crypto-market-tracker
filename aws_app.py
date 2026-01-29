@@ -16,7 +16,8 @@ watchlist_table   = dynamodb.Table(Config.DYNAMODB_TABLE_WATCHLIST)
 
 prices_table  = dynamodb.Table(Config.DYNAMODB_TABLE_PRICES)
 
-SNS_TOPIC_ARN  = "PASTE_YOUR_SNS_TOPIC_ARN_HERE"
+SNS_TOPIC_ARN = Config.SNS_TOPIC_ARN
+
 
 def get_crypto_prices():
     
@@ -166,5 +167,6 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
