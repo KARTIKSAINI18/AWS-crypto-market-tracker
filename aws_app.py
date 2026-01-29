@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 from datetime import datetime
 import boto3
@@ -67,7 +68,13 @@ def signup():
             return "User already exists!"
             
 
-        users_table.put_item(Item= {"username":username,"password":password})
+        hashed_password = generate_password_hash(password)
+
+        users_table.put_item(Item={
+            "username": username,
+            "password": hashed_password
+        })
+
         return redirect(url_for("login"))
     return render_template("signup.html")
 
@@ -80,7 +87,8 @@ def login():
 
         
         res =users_table.get_item(Key={"username": username})
-        if "Item" in res and res["Item"]["password"] == password:
+        if "Item" in res and check_password_hash(res["Item"]["password"], password):
+
             
             session["user"] = username
             
@@ -167,6 +175,7 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
