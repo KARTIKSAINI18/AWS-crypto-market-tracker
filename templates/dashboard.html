@@ -16,7 +16,7 @@
         <h3>Live Crypto Prices (USD)</h3>
         <ul>
             {% for coin, Price in prices.items() %}
-                <li><strong>{{ coin }}:</strong> ${{ Price }}</li>
+                <li><strong>{{ coin | capitalize }}:</strong> ${{ Price }}</li>
             {% endfor %}
         </ul>
     </div>
@@ -25,8 +25,8 @@
         <h3>Add to Watchlist</h3>
         <form method="POST" action  =  "/add_to_watchlist">
             <select name ="coin" required>
-                <option value = "Bitcoin">Bitcoin</option>
-                <option value = "Ethereum">Ethereum</option>
+                <option value = "bitcoin">Bitcoin</option>
+                <option value = "ethereum">Ethereum</option>
             </select>
             <button type ="submit" > Add </button>
         </form>
