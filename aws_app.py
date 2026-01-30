@@ -117,22 +117,34 @@ def dashboard():
     triggered_alerts = []
 
     
+    alerts_table = dynamodb.Table("Alerts")
+
     for alert in alerts_res.get("Items", []):
+        if alert.get("triggered"):
+            continue  # ⛔ Skip already-triggered alerts
+
         coin = alert["coin"]
-        
         target_price = alert["target_price"]
         current_price = prices.get(coin)
 
         if isinstance(current_price, (int, float)) and current_price <= target_price:
-            message = f"{coin} dropped to ${current_price} (Alert: ${target_price})"
+            message = f"{coin.upper()} dropped to ${current_price} (Alert: ${target_price})"
             triggered_alerts.append(message)
-            sns.publish(
-                
-                TopicArn=SNS_TOPIC_ARN,
-                Subject="Crypto Price Alert",
-                
-                Message=message
+            if SNS_TOPIC_ARN:
+                sns.publish(
+                    TopicArn=SNS_TOPIC_ARN,
+                    Subject="Crypto Price Alert",
+                    Message=message
+                )
+            alerts_table.update_item(
+                Key={
+                    "username": session["user"],
+                    "coin": coin
+                },
+                UpdateExpression="SET triggered = :t",
+                ExpressionAttributeValues={":t": True}
             )
+
     return render_template(
         "dashboard.html",
         user= user,
@@ -157,11 +169,13 @@ def add_to_watchlist():
 def set_alert():
     dynamodb.Table("Alerts").put_item(
         Item={
-            "username":session["user"],
-            "coin" : request.form["coin"],
-            "target_price" : float(request.form["price"])
+            "username": session["user"],
+            "coin": request.form["coin"].lower(),
+            "target_price": float(request.form["price"]),
+            "triggered": False
         }
     )
+
     return redirect(url_for("dashboard"))
 
 
@@ -175,6 +189,7 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
