@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
+from boto3.dynamodb.conditions import Key
 from datetime import datetime
 import boto3
 from config import Config
@@ -37,8 +38,8 @@ def get_crypto_prices():
 
     prices = {
         
-        "Bitcoin":data.get("bitcoin",{}).get("usd"),
-        "Ethereum": data.get("ethereum", {}).get("usd")
+        "bitcoin":data.get("bitcoin",{}).get("usd"),
+        "ethereum": data.get("ethereum", {}).get("usd")
     }
 
     timestamp =datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -106,13 +107,23 @@ def dashboard():
     user  = session["user"]
     prices = get_crypto_prices()
 
+    if not prices:
+        return render_template(
+            "dashboard.html",
+            user=user,
+            prices={},
+            watchlist=[],
+            triggered_alerts=[],
+            history={}
+        )
+
     watchlist_res = watchlist_table.query(
-        KeyConditionExpression=boto3.dynamodb.conditions.Key("username").eq(user)
+        KeyConditionExpression=Key("username").eq(user)
     )
     watchlist = [item["coin"] for item in watchlist_res.get("Items", [])]
 
     alerts_res = dynamodb.Table("Alerts").query(
-        KeyConditionExpression=boto3.dynamodb.conditions.Key("username").eq(user)
+        KeyConditionExpression=Key("username").eq(user)
     )
     triggered_alerts = []
 
@@ -161,7 +172,7 @@ def add_to_watchlist():
     watchlist_table.put_item(
         Item={
             "username":session["user"],
-            "coin": request.form["coin"]
+            "coin": request.form["coin"].lower()
         }
     )
     return redirect(url_for("dashboard"))
@@ -189,6 +200,7 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
