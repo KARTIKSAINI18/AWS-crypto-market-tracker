@@ -129,7 +129,6 @@ def dashboard():
         KeyConditionExpression=Key("username").eq(user)
     )
     
-    )
     triggered_alerts = []
 
     
@@ -180,9 +179,9 @@ def add_to_watchlist():
         }
     )
     return redirect(url_for("dashboard"))
-@app.route("/set_alert",methods =["POST"])
+@app.route("/set_alert", methods=["POST"])
 def set_alert():
-    dynamodb.Table("Alerts").put_item(
+    alerts_table.put_item(
         Item={
             "username": session["user"],
             "coin": request.form["coin"].lower(),
@@ -204,6 +203,7 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
