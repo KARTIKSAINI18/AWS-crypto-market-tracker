@@ -14,6 +14,8 @@ sns= boto3.client("sns",region_name = AWS_REGION)
 
 users_table =  dynamodb.Table(Config.DYNAMODB_TABLE_USERS)
 watchlist_table   = dynamodb.Table(Config.DYNAMODB_TABLE_WATCHLIST)
+alerts_table = dynamodb.Table(Config.DYNAMODB_TABLE_ALERTS)
+
 
 
 prices_table  = dynamodb.Table(Config.DYNAMODB_TABLE_PRICES)
@@ -122,13 +124,15 @@ def dashboard():
     )
     watchlist = [item["coin"] for item in watchlist_res.get("Items", [])]
 
-    alerts_res = dynamodb.Table("Alerts").query(
+    alerts_res = alerts_table.query(
+        
         KeyConditionExpression=Key("username").eq(user)
+    )
+    
     )
     triggered_alerts = []
 
     
-    alerts_table = dynamodb.Table("Alerts")
 
     for alert in alerts_res.get("Items", []):
         if alert.get("triggered"):
@@ -200,6 +204,7 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
