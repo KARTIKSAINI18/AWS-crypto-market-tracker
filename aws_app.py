@@ -64,9 +64,9 @@ def index():
 def signup():
     if request.method == "POST":
         
-        username =request.form["username"]
+        email =request.form["email"]
         password =  request.form["password"]
-        existing = users_table.get_item(Key ={"username": username})
+        existing = users_table.get_item(Key ={"email": email})
         if "Item" in existing:
             return "User already exists!"
             
@@ -74,7 +74,7 @@ def signup():
         hashed_password = generate_password_hash(password)
 
         users_table.put_item(Item={
-            "username": username,
+            "email": email,
             "password": hashed_password
         })
 
@@ -84,16 +84,16 @@ def signup():
 @app.route("/login",methods=["GET", "POST"])
 def login():
     if request.method =="POST":
-        username =request.form["username"]
+        email =request.form["email"]
         password   = request.form["password"]
 
 
         
-        res =users_table.get_item(Key={"username": username})
+        res =users_table.get_item(Key={"email": email})
         if "Item" in res and check_password_hash(res["Item"]["password"], password):
 
             
-            session["user"] = username
+            session["user"] = email
             
             return redirect(url_for("dashboard"))
 
@@ -120,13 +120,13 @@ def dashboard():
         )
 
     watchlist_res = watchlist_table.query(
-        KeyConditionExpression=Key("username").eq(user)
+        KeyConditionExpression=Key("email").eq(user)
     )
-    watchlist = [item["coin"] for item in watchlist_res.get("Items", [])]
+    watchlist = [item["coin_id"] for item in watchlist_res.get("Items", [])]
 
     alerts_res = alerts_table.query(
         
-        KeyConditionExpression=Key("username").eq(user)
+        KeyConditionExpression=Key("email").eq(user)
     )
     
     triggered_alerts = []
@@ -137,7 +137,7 @@ def dashboard():
         if alert.get("triggered"):
             continue  # ⛔ Skip already-triggered alerts
 
-        coin = alert["coin"]
+        coin = alert["coin_id"]
         target_price = alert["target_price"]
         current_price = prices.get(coin)
 
@@ -152,8 +152,8 @@ def dashboard():
                 )
             alerts_table.update_item(
                 Key={
-                    "username": session["user"],
-                    "coin": coin
+                    "email": session["user"],
+                    "coin_id": coin
                 },
                 UpdateExpression="SET triggered = :t",
                 ExpressionAttributeValues={":t": True}
@@ -174,8 +174,8 @@ def add_to_watchlist():
     
     watchlist_table.put_item(
         Item={
-            "username":session["user"],
-            "coin": request.form["coin"].lower()
+            "email":session["user"],
+            "coin_id": request.form["coin"].lower()
         }
     )
     return redirect(url_for("dashboard"))
@@ -183,8 +183,8 @@ def add_to_watchlist():
 def set_alert():
     alerts_table.put_item(
         Item={
-            "username": session["user"],
-            "coin": request.form["coin"].lower(),
+            "email": session["user"],
+            "coin_id": request.form["coin"].lower(),
             "target_price": float(request.form["price"]),
             "triggered": False
         }
@@ -200,9 +200,6 @@ def logout():
     return redirect(url_for("index"))
 
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
 
 
 

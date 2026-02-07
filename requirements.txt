@@ -1,2 +1,4 @@
-flask
+Flask
 requests
+boto3
+gunicorn
