@@ -5,6 +5,8 @@ from boto3.dynamodb.conditions import Key
 from datetime import datetime
 import boto3
 from config import Config
+from decimal import Decimal
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -51,7 +53,7 @@ def get_crypto_prices():
                 Item={
                     "coin":coin,
                     "timestamp" : timestamp,
-                    "price" : price
+                    "price": Decimal(str(price))
                     
                 }
             )
@@ -185,7 +187,7 @@ def set_alert():
         Item={
             "email": session["user"],
             "coin_id": request.form["coin"].lower(),
-            "target_price": float(request.form["price"]),
+            "target_price": Decimal(str(request.form["price"])),
             "triggered": False
         }
     )

@@ -1,86 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="{{url_for('static' , filename=  'style.css') }}">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<div class="container">
+  <!-- Navbar -->
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+    <h2>📊 Crypto Dashboard</h2>
+    <div>
+      <span style="margin-right:15px;">{{ user }}</span>
+      <a href="/logout"><button>Logout</button></a>
+    </div>
+  </div>
+
+  <div class="container">
 
     <div class="card">
-        <h2>Welcome, {{ user }}</h2>
-    </div>
-
-    <div class="card">
-        <h3>Live Crypto Prices (USD)</h3>
-        <ul>
-            {% for coin, Price in prices.items() %}
-                <li><strong>{{ coin | capitalize }}:</strong> ${{ Price }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="card">
-        <h3>Add to Watchlist</h3>
-        <form method="POST" action  =  "/add_to_watchlist">
-            <select name ="coin" required>
-                <option value = "bitcoin">Bitcoin</option>
-                <option value = "ethereum">Ethereum</option>
-            </select>
-            <button type ="submit" > Add </button>
-        </form>
-    </div>
-
-    <div class ="card">
-        <h3>Your Watchlist</h3>
-        <ul>
-            {% for coin in watchlist %}
-                <li>{{ coin }}</li>
-            {% else %}
-                <li>no coins added yet.</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="card">
-        <h3>Set Price Alert</h3 >
-        <form method="POST" action="/set_alert">
-            <select name="coin" required>
-                {% for coin in watchlist %}
-                    <option value="{{coin }}">{{ coin }}</option>
-                {% endfor %}
-            </select>
-            <input type="number" step="0.01" name="price" placeholder="alert price" required>
-            <button type="submit">Set Alert</button>
-        </form>
-
-        {% if triggered_alerts %}
-            <ul class="alert">
-                {% for alert in triggered_alerts %}
-                    <li>{{ alert }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    </div>
-
-    <div class="card">
-        <h3>Recent Price History</h3>
-        {% for coin, records in history.items() %}
-            <h4>{{ coin }}</h4>
-            <ul>
-                {% for record in records %}
-                    <li>{{ record.time }} → ${{ record.price }}</li>
-                {% endfor %}
-            </ul>
+      <h3>Live Crypto Prices (USD)</h3>
+      <ul>
+        {% for coin, Price in prices.items() %}
+        <li>
+          <strong>{{ coin | capitalize }}</strong>
+          <span class="price-up"> ${{ Price }}</span>
+        </li>
         {% endfor %}
+      </ul>
     </div>
 
     <div class="card">
-        <a href="/logout">Logout</a>
+      <h3>Add to Watchlist</h3>
+      <form method="POST" action="/add_to_watchlist">
+        <select name="coin" required>
+          <option value="bitcoin">Bitcoin</option>
+          <option value="ethereum">Ethereum</option>
+          <option value="solana">Solana</option>
+          <option value="cardano">Cardano</option>
+          <option value="dogecoin">Dogecoin</option>
+        </select>
+        <button type="submit">Add</button>
+      </form>
     </div>
 
-</div>
+    <div class="card">
+      <h3>Your Watchlist</h3>
+      <ul>
+        {% for coin in watchlist %}
+          <li>{{ coin }}</li>
+        {% else %}
+          <li>No coins added yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
 
+    <div class="card">
+      <h3>Set Price Alert</h3>
+      <form method="POST" action="/set_alert">
+        <select name="coin" required>
+          {% for coin in watchlist %}
+          <option value="{{ coin }}">{{ coin }}</option>
+          {% endfor %}
+        </select>
+        <input type="number" step="0.01" name="price" placeholder="Target price" required>
+        <button type="submit">Set Alert</button>
+      </form>
+
+      {% if triggered_alerts %}
+      <ul class="alert">
+        {% for alert in triggered_alerts %}
+          <li>{{ alert }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+  </div>
 </body>
 </html>
